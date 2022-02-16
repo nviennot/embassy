@@ -975,16 +975,17 @@ mod eh1a {
             self.write_read(address, bytes, buffer)
         }
 
-        type TransactionFuture<'a>
+        type TransactionFuture<'a, 'b>
         where
             Self: 'a,
+            'b: 'a,
         = impl Future<Output = Result<(), Self::Error>> + 'a;
 
-        fn transaction<'a>(
+        fn transaction<'a, 'b>(
             &'a mut self,
             address: u8,
-            operations: &mut [embedded_hal_async::i2c::Operation<'a>],
-        ) -> Self::TransactionFuture<'a> {
+            operations: &'a mut [embedded_hal_async::i2c::Operation<'b>],
+        ) -> Self::TransactionFuture<'a, 'b> {
             let _ = address;
             let _ = operations;
             async move { todo!() }

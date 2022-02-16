@@ -445,11 +445,35 @@ impl<'d, T: Instance, Tx, Rx> Spi<'d, T, Tx, Rx> {
         Ok(())
     }
 
+    pub fn blocking_read<W: Word>(&mut self, words: &mut [W]) -> Result<(), Error> {
+        self.set_word_size(W::WORDSIZE);
+        let regs = T::regs();
+        for word in words.iter_mut() {
+            *word = transfer_word(regs, W::default())?;
+        }
+        Ok(())
+    }
+
     pub fn blocking_transfer_in_place<W: Word>(&mut self, words: &mut [W]) -> Result<(), Error> {
         self.set_word_size(W::WORDSIZE);
         let regs = T::regs();
         for word in words.iter_mut() {
             *word = transfer_word(regs, *word)?;
+        }
+        Ok(())
+    }
+
+    pub fn blocking_transfer<W: Word>(&mut self, read: &mut [W], write: &[W]) -> Result<(), Error> {
+        self.set_word_size(W::WORDSIZE);
+        let regs = T::regs();
+
+        let len = read.len().max(write.len());
+        for i in 0..len {
+            let wb = write.get(i).copied().unwrap_or_default();
+            let rb = transfer_word(regs, wb)?;
+            if let Some(r) = read.get_mut(i) {
+                *r = rb;
+            }
         }
         Ok(())
     }
@@ -662,6 +686,31 @@ mod eh02 {
 }
 
 #[cfg(feature = "unstable-traits")]
+impl<'d, T: Instance> embedded_hal_1::spi::blocking::SpiBusRead<u8> for Spi<'d, T, NoDma, NoDma> {
+    fn read(&mut self, words: &mut [u8]) -> Result<(), Self::Error> {
+        self.blocking_read(words)
+    }
+}
+
+#[cfg(feature = "unstable-traits")]
+impl<'d, T: Instance> embedded_hal_1::spi::blocking::SpiBusWrite<u8> for Spi<'d, T, NoDma, NoDma> {
+    fn write(&mut self, words: &[u8]) -> Result<(), Self::Error> {
+        self.blocking_write(words)
+    }
+}
+
+#[cfg(feature = "unstable-traits")]
+impl<'d, T: Instance> embedded_hal_1::spi::blocking::SpiBus<u8> for Spi<'d, T, NoDma, NoDma> {
+    fn transfer(&mut self, read: &mut [u8], write: &[u8]) -> Result<(), Self::Error> {
+        self.blocking_transfer(read, write)
+    }
+
+    fn transfer_in_place(&mut self, words: &mut [u8]) -> Result<(), Self::Error> {
+        self.blocking_transfer_in_place(words)
+    }
+}
+
+#[cfg(feature = "unstable-traits")]
 mod eh1 {
     use super::*;
 
@@ -686,7 +735,9 @@ mod eh1a {
     use super::*;
     use core::future::Future;
 
-    impl<'d, T: Instance, Tx: TxDma<T>, Rx> embedded_hal_async::spi::Write<u8> for Spi<'d, T, Tx, Rx> {
+    impl<'d, T: Instance, Tx: TxDma<T>, Rx> embedded_hal_async::spi::SpiBusWrite<u8>
+        for Spi<'d, T, Tx, Rx>
+    {
         type WriteFuture<'a>
         where
             Self: 'a,
@@ -695,26 +746,9 @@ mod eh1a {
         fn write<'a>(&'a mut self, data: &'a [u8]) -> Self::WriteFuture<'a> {
             self.write(data)
         }
-
-        type WriteTransactionFuture<'a>
-        where
-            Self: 'a,
-        = impl Future<Output = Result<(), Self::Error>> + 'a;
-
-        fn write_transaction<'a>(
-            &'a mut self,
-            words: &'a [&'a [u8]],
-        ) -> Self::WriteTransactionFuture<'a> {
-            async move {
-                for buf in words {
-                    self.write(buf).await?
-                }
-                Ok(())
-            }
-        }
     }
 
-    impl<'d, T: Instance, Tx: TxDma<T>, Rx: RxDma<T>> embedded_hal_async::spi::Read<u8>
+    impl<'d, T: Instance, Tx: TxDma<T>, Rx: RxDma<T>> embedded_hal_async::spi::SpiBusRead<u8>
         for Spi<'d, T, Tx, Rx>
     {
         type ReadFuture<'a>
@@ -725,26 +759,9 @@ mod eh1a {
         fn read<'a>(&'a mut self, data: &'a mut [u8]) -> Self::ReadFuture<'a> {
             self.read(data)
         }
-
-        type ReadTransactionFuture<'a>
-        where
-            Self: 'a,
-        = impl Future<Output = Result<(), Self::Error>> + 'a;
-
-        fn read_transaction<'a>(
-            &'a mut self,
-            words: &'a mut [&'a mut [u8]],
-        ) -> Self::ReadTransactionFuture<'a> {
-            async move {
-                for buf in words {
-                    self.read(buf).await?
-                }
-                Ok(())
-            }
-        }
     }
 
-    impl<'d, T: Instance, Tx: TxDma<T>, Rx: RxDma<T>> embedded_hal_async::spi::ReadWrite<u8>
+    impl<'d, T: Instance, Tx: TxDma<T>, Rx: RxDma<T>> embedded_hal_async::spi::SpiBus<u8>
         for Spi<'d, T, Tx, Rx>
     {
         type TransferFuture<'a>
@@ -768,29 +785,6 @@ mod eh1a {
             // TODO: Implement async version
             let result = self.blocking_transfer_in_place(words);
             async move { result }
-        }
-
-        type TransactionFuture<'a>
-        where
-            Self: 'a,
-        = impl Future<Output = Result<(), Self::Error>> + 'a;
-
-        fn transaction<'a>(
-            &'a mut self,
-            operations: &'a mut [embedded_hal_async::spi::Operation<'a, u8>],
-        ) -> Self::TransactionFuture<'a> {
-            use embedded_hal_1::spi::blocking::Operation;
-            async move {
-                for o in operations {
-                    match o {
-                        Operation::Read(b) => self.read(b).await?,
-                        Operation::Write(b) => self.write(b).await?,
-                        Operation::Transfer(r, w) => self.transfer(r, w).await?,
-                        Operation::TransferInPlace(b) => self.transfer_in_place(b).await?,
-                    }
-                }
-                Ok(())
-            }
         }
     }
 }
@@ -862,7 +856,7 @@ pub(crate) mod sealed {
     }
 }
 
-pub trait Word: Copy + 'static + sealed::Word {}
+pub trait Word: Copy + 'static + sealed::Word + Default {}
 
 impl Word for u8 {}
 impl Word for u16 {}

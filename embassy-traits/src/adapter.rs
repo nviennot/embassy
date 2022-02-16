@@ -69,16 +69,17 @@ where
         async move { self.wrapped.write_read(address, bytes, buffer) }
     }
 
-    type TransactionFuture<'a>
+    type TransactionFuture<'a, 'b>
     where
         Self: 'a,
+        'b: 'a,
     = impl Future<Output = Result<(), Self::Error>> + 'a;
 
-    fn transaction<'a>(
+    fn transaction<'a, 'b>(
         &'a mut self,
         address: u8,
-        operations: &mut [embedded_hal_async::i2c::Operation<'a>],
-    ) -> Self::TransactionFuture<'a> {
+        operations: &'a mut [embedded_hal_async::i2c::Operation<'b>],
+    ) -> Self::TransactionFuture<'a, 'b> {
         let _ = address;
         let _ = operations;
         async move { todo!() }
@@ -97,7 +98,7 @@ where
     type Error = E;
 }
 
-impl<T, E> embedded_hal_async::spi::ReadWrite<u8> for BlockingAsync<T>
+impl<T, E> embedded_hal_async::spi::SpiBus<u8> for BlockingAsync<T>
 where
     E: embedded_hal_1::spi::Error + 'static,
     T: blocking::spi::Transfer<u8, Error = E> + blocking::spi::Write<u8, Error = E>,
@@ -126,21 +127,9 @@ where
     fn transfer_in_place<'a>(&'a mut self, _: &'a mut [u8]) -> Self::TransferInPlaceFuture<'a> {
         async move { todo!() }
     }
-
-    type TransactionFuture<'a>
-    where
-        Self: 'a,
-    = impl Future<Output = Result<(), Self::Error>> + 'a;
-
-    fn transaction<'a>(
-        &'a mut self,
-        _: &'a mut [embedded_hal_async::spi::Operation<'a, u8>],
-    ) -> Self::TransactionFuture<'a> {
-        async move { todo!() }
-    }
 }
 
-impl<T, E> embedded_hal_async::spi::Write<u8> for BlockingAsync<T>
+impl<T, E> embedded_hal_async::spi::SpiBusWrite<u8> for BlockingAsync<T>
 where
     E: embedded_hal_1::spi::Error + 'static,
     T: blocking::spi::Transfer<u8, Error = E> + blocking::spi::Write<u8, Error = E>,
@@ -156,18 +145,9 @@ where
             Ok(())
         }
     }
-
-    type WriteTransactionFuture<'a>
-    where
-        Self: 'a,
-    = impl Future<Output = Result<(), Self::Error>> + 'a;
-
-    fn write_transaction<'a>(&'a mut self, _: &'a [&'a [u8]]) -> Self::WriteTransactionFuture<'a> {
-        async move { todo!() }
-    }
 }
 
-impl<T, E> embedded_hal_async::spi::Read<u8> for BlockingAsync<T>
+impl<T, E> embedded_hal_async::spi::SpiBusRead<u8> for BlockingAsync<T>
 where
     E: embedded_hal_1::spi::Error + 'static,
     T: blocking::spi::Transfer<u8, Error = E> + blocking::spi::Write<u8, Error = E>,
@@ -182,18 +162,6 @@ where
             self.wrapped.transfer(data)?;
             Ok(())
         }
-    }
-
-    type ReadTransactionFuture<'a>
-    where
-        Self: 'a,
-    = impl Future<Output = Result<(), Self::Error>> + 'a;
-
-    fn read_transaction<'a>(
-        &'a mut self,
-        _: &'a mut [&'a mut [u8]],
-    ) -> Self::ReadTransactionFuture<'a> {
-        async move { todo!() }
     }
 }
 

@@ -20,7 +20,7 @@ pub trait RadioSwitch {
 /// Semtech Sx127x radio peripheral
 pub struct Sx127xRadio<SPI, CS, RESET, E, I, RFS>
 where
-    SPI: ReadWrite<u8, Error = E> + 'static,
+    SPI: SpiBus<u8, Error = E> + 'static,
     E: 'static,
     CS: OutputPin + 'static,
     RESET: OutputPin + 'static,
@@ -42,7 +42,7 @@ pub enum State {
 
 impl<SPI, CS, RESET, E, I, RFS> Sx127xRadio<SPI, CS, RESET, E, I, RFS>
 where
-    SPI: ReadWrite<u8, Error = E> + 'static,
+    SPI: SpiBus<u8, Error = E> + 'static,
     CS: OutputPin + 'static,
     RESET: OutputPin + 'static,
     I: Wait + 'static,
@@ -64,7 +64,7 @@ where
 
 impl<SPI, CS, RESET, E, I, RFS> Timings for Sx127xRadio<SPI, CS, RESET, E, I, RFS>
 where
-    SPI: ReadWrite<u8, Error = E> + 'static,
+    SPI: SpiBus<u8, Error = E> + 'static,
     CS: OutputPin + 'static,
     RESET: OutputPin + 'static,
     I: Wait + 'static,
@@ -80,7 +80,7 @@ where
 
 impl<SPI, CS, RESET, E, I, RFS> PhyRxTx for Sx127xRadio<SPI, CS, RESET, E, I, RFS>
 where
-    SPI: ReadWrite<u8, Error = E> + 'static,
+    SPI: SpiBus<u8, Error = E> + 'static,
     CS: OutputPin + 'static,
     E: 'static,
     RESET: OutputPin + 'static,
