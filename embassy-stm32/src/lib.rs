@@ -129,7 +129,8 @@ pub fn init(config: Config) -> Peripherals {
         #[cfg(feature = "exti")]
         exti::init();
 
-        rcc::init(config.rcc);
+        // We are doing the Gigadevice clock init separately
+        //rcc::init(config.rcc);
 
         // must be after rcc init
         #[cfg(feature = "_time-driver")]
