@@ -128,6 +128,7 @@ pub fn init(config: Config) -> Peripherals {
         #[cfg(feature = "exti")]
         exti::init();
 
+        #[cfg(not(feature = "skip_clock_init"))]
         rcc::init(config.rcc);
 
         // must be after rcc init

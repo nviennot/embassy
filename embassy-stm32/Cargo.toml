@@ -69,6 +69,7 @@ net = ["embassy-net", "vcell"]
 memory-x = ["stm32-metapac/memory-x"]
 subghz = []
 exti = []
+skip_clock_init = []
 usb-otg = ["synopsys-usb-otg"]
 
 # Features starting with `_` are for internal use only. They're not intended
