@@ -78,6 +78,7 @@ net = ["embassy-net" ]
 memory-x = ["stm32-metapac/memory-x"]
 subghz = []
 exti = []
+skip_clock_init = []
 
 # Features starting with `_` are for internal use only. They're not intended
 # to be enabled by other crates, and are not covered by semver guarantees.

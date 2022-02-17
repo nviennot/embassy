@@ -26,7 +26,7 @@ pub struct Config {
     pub adcclk: Option<Hertz>,
 }
 
-pub(crate) unsafe fn init(config: Config) {
+pub unsafe fn init(config: Config) {
     let pllsrcclk = config.hse.map(|hse| hse.0).unwrap_or(HSI_FREQ.0 / 2);
     let sysclk = config.sys_ck.map(|sys| sys.0).unwrap_or(pllsrcclk);
     let pllmul = sysclk / pllsrcclk;
