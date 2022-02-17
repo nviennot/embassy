@@ -70,7 +70,7 @@ static mut CLOCK_FREQS: MaybeUninit<Clocks> = MaybeUninit::uninit();
 /// Sets the clock frequencies
 ///
 /// Safety: Sets a mutable global.
-pub(crate) unsafe fn set_freqs(freqs: Clocks) {
+pub unsafe fn set_freqs(freqs: Clocks) {
     CLOCK_FREQS.as_mut_ptr().write(freqs);
 }
 
