@@ -674,7 +674,7 @@ impl RegsExt for Regs {
     }
 }
 
-fn check_error_flags(sr: regs::Sr) -> Result<(), Error> {
+fn _check_error_flags(sr: regs::Sr) -> Result<(), Error> {
     if sr.ovr() {
         return Err(Error::Overrun);
     }
@@ -705,7 +705,7 @@ fn spin_until_tx_ready(regs: Regs) -> Result<(), Error> {
     loop {
         let sr = unsafe { regs.sr().read() };
 
-        check_error_flags(sr)?;
+        //check_error_flags(sr)?;
 
         #[cfg(not(spi_v3))]
         if sr.txe() {
@@ -722,7 +722,7 @@ fn spin_until_rx_ready(regs: Regs) -> Result<(), Error> {
     loop {
         let sr = unsafe { regs.sr().read() };
 
-        check_error_flags(sr)?;
+        //check_error_flags(sr)?;
 
         #[cfg(not(spi_v3))]
         if sr.rxne() {
