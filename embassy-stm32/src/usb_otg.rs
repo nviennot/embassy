@@ -131,7 +131,10 @@ foreach_peripheral!(
             const HIGH_SPEED: bool = false;
 
             cfg_if::cfg_if! {
-                if #[cfg(stm32f1)] {
+                if #[cfg(gd32f307ve)] {
+                    const FIFO_DEPTH_WORDS: usize = 320;
+                    const ENDPOINT_COUNT: usize = 4;
+                } else if #[cfg(stm32f1)] {
                     const FIFO_DEPTH_WORDS: usize = 128;
                     const ENDPOINT_COUNT: usize = 8;
                 } else if #[cfg(any(

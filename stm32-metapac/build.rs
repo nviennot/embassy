@@ -15,13 +15,14 @@ fn parse_chip_core(chip_and_core: &str) -> (String, Option<String>) {
     (chip_and_core.to_string(), None)
 }
 
+
 fn main() {
     let out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
     let data_dir = PathBuf::from("../stm32-data/data");
 
     let chip_core_name = env::vars_os()
         .map(|(a, _)| a.to_string_lossy().to_string())
-        .find(|x| x.starts_with("CARGO_FEATURE_STM32"))
+        .find(|x| x.starts_with("CARGO_FEATURE_STM32") || x.starts_with("CARGO_FEATURE_GD32"))
         .expect("No stm32xx Cargo feature enabled")
         .strip_prefix("CARGO_FEATURE_")
         .unwrap()
