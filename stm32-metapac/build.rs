@@ -21,7 +21,7 @@ fn main() {
 
     let chip_core_name = env::vars_os()
         .map(|(a, _)| a.to_string_lossy().to_string())
-        .find(|x| x.starts_with("CARGO_FEATURE_STM32"))
+        .find(|x| x.starts_with("CARGO_FEATURE_STM32") || x.starts_with("CARGO_FEATURE_GD32"))
         .expect("No stm32xx Cargo feature enabled")
         .strip_prefix("CARGO_FEATURE_")
         .unwrap()
