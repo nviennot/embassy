@@ -62,6 +62,9 @@ pub use timer::{with_timeout, Ticker, TimeoutError, Timer};
 #[cfg(feature = "time-tick-1000hz")]
 const TPS: u64 = 1_000;
 
+#[cfg(feature = "time-tick-4000hz")]
+const TPS: u64 = 4_000;
+
 #[cfg(feature = "time-tick-32768hz")]
 const TPS: u64 = 32_768;
 
