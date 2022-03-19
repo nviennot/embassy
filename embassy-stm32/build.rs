@@ -10,7 +10,7 @@ use stm32_metapac::metadata::METADATA;
 fn main() {
     let chip_name = match env::vars()
         .map(|(a, _)| a)
-        .filter(|x| x.starts_with("CARGO_FEATURE_STM32"))
+        .filter(|x| x.starts_with("CARGO_FEATURE_STM32") || x.starts_with("CARGO_FEATURE_GD32"))
         .get_one()
     {
         Ok(x) => x,
