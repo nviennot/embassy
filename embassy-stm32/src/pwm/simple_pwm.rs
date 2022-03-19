@@ -38,6 +38,16 @@ impl<'d, T: CaptureCompare16bitInstance> SimplePwm<'d, T> {
         })
     }
 
+    pub fn new_1ch4<F: Into<Hertz>>(
+        tim: impl Unborrow<Target = T> + 'd,
+        ch4: impl Unborrow<Target = impl Channel4Pin<T>> + 'd,
+        freq: F,
+    ) -> Self {
+        Self::new_inner(tim, freq, move || {
+            config_pins!(ch4);
+        })
+    }
+
     pub fn new_2ch<F: Into<Hertz>>(
         tim: impl Unborrow<Target = T> + 'd,
         ch1: impl Unborrow<Target = impl Channel1Pin<T>> + 'd,
