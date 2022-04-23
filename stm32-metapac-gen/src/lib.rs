@@ -99,7 +99,8 @@ impl Gen {
         ir.devices.insert("".to_string(), dev);
 
         let mut extra = format!(
-            "pub fn GPIO(n: usize) -> gpio::Gpio {{
+            "#[inline]
+            pub fn GPIO(n: usize) -> gpio::Gpio {{
             gpio::Gpio(({} + {}*n) as _)
         }}",
             gpio_base, gpio_stride,
